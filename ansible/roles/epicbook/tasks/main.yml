@@ -1,12 +1,11 @@
----
 - name: Remove old EpicBook directory
   file:
     path: "{{ app_dir }}"
     state: absent
-    
+
 - name: Clone EpicBook repo
   git:
-    repo: "https://github.com/pravinmishraaws/theepicbook.git"
+    repo: "{{ epicbook_repo }}"
     dest: "{{ app_dir }}"
     version: main
 
@@ -26,12 +25,27 @@
       DB_PORT=3306
       NODE_ENV=production
       PORT=8080
+  notify: Restart EpicBook Service
 
-- name: Update config.json
+- name: Update config.json with all environments
   copy:
     dest: "{{ app_dir }}/config/config.json"
     content: |
       {
+        "development": {
+          "username": "{{ db_username }}",
+          "password": "{{ db_password }}",
+          "database": "{{ db_name }}",
+          "host": "{{ db_host }}",
+          "dialect": "mysql"
+        },
+        "test": {
+          "username": "{{ db_username }}",
+          "password": "{{ db_password }}",
+          "database": "{{ db_name }}",
+          "host": "{{ db_host }}",
+          "dialect": "mysql"
+        },
         "production": {
           "username": "{{ db_username }}",
           "password": "{{ db_password }}",
@@ -40,12 +54,21 @@
           "dialect": "mysql"
         }
       }
+  notify: Restart EpicBook Service
+
+- name: Ensure MySQL database exists
+  mysql_db:
+    name: "{{ db_name }}"
+    state: present
+    login_host: "{{ db_host }}"
+    login_user: "{{ db_username }}"
+    login_password: "{{ db_password }}"
 
 - name: Seed database
   shell: |
-    mysql -h {{ db_host }} -u {{ db_username }} -p{{ db_password }} < db/BuyTheBook_Schema.sql
-    mysql -h {{ db_host }} -u {{ db_username }} -p{{ db_password }} < db/author_seed.sql
-    mysql -h {{ db_host }} -u {{ db_username }} -p{{ db_password }} < db/books_seed.sql
+    mysql -h {{ db_host }} -u {{ db_username }} -p{{ db_password }} {{ db_name }} < db/BuyTheBook_Schema.sql
+    mysql -h {{ db_host }} -u {{ db_username }} -p{{ db_password }} {{ db_name }} < db/author_seed.sql
+    mysql -h {{ db_host }} -u {{ db_username }} -p{{ db_password }} {{ db_name }} < db/books_seed.sql
   args:
     chdir: "{{ app_dir }}"
   ignore_errors: yes
@@ -65,9 +88,11 @@
       ExecStart=/usr/bin/node server.js
       Restart=on-failure
       Environment=NODE_ENV=production
+      EnvironmentFile={{ app_dir }}/.env
 
       [Install]
       WantedBy=multi-user.target
+  notify: Restart EpicBook Service
 
 - name: Enable and start EpicBook service
   systemd:
