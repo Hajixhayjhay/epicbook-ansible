@@ -78,10 +78,12 @@
       Type=simple
       User=root
       WorkingDirectory={{ app_dir }}
-      ExecStart=/usr/bin/node server.js
+      ExecStart=/usr/bin/node {{ app_dir }}/server.js
       Restart=on-failure
       Environment=NODE_ENV=production
       EnvironmentFile={{ app_dir }}/.env
+      StandardOutput=append:/var/log/epicbook.log
+      StandardError=append:/var/log/epicbook.log
 
       [Install]
       WantedBy=multi-user.target
@@ -93,4 +95,3 @@
     enabled: yes
     state: started
     daemon_reload: yes
-
