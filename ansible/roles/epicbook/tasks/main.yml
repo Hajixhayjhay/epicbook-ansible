@@ -1,4 +1,9 @@
 ---
+- name: Remove old EpicBook directory
+  file:
+    path: "{{ app_dir }}"
+    state: absent
+    
 - name: Clone EpicBook repo
   git:
     repo: "https://github.com/pravinmishraaws/theepicbook.git"
