@@ -28,3 +28,15 @@
 
 - debug:
     msg: "Node.js version installed: {{ node_version.stdout }}"
+
+
+- name: Ensure Python3 pip is installed
+  apt:
+    name: python3-pip
+    state: present
+    update_cache: yes
+
+- name: Install PyMySQL for Python3
+  pip:
+    name: PyMySQL
+    executable: pip3
