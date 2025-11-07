@@ -66,13 +66,12 @@
 
 - name: Seed database
   shell: |
-    mysql --ssl-mode=REQUIRED -h {{ db_host }} -u {{ db_username }} -p{{ db_password }} < db/BuyTheBook_Schema.sql
-    mysql --ssl-mode=REQUIRED -h {{ db_host }} -u {{ db_username }} -p{{ db_password }} < db/author_seed.sql
-    mysql --ssl-mode=REQUIRED -h {{ db_host }} -u {{ db_username }} -p{{ db_password }} < db/books_seed.sql
+    mysql -h {{ db_host }} -u {{ db_username }} -p{{ db_password }} < db/BuyTheBook_Schema.sql
+    mysql -h {{ db_host }} -u {{ db_username }} -p{{ db_password }} < db/author_seed.sql
+    mysql -h {{ db_host }} -u {{ db_username }} -p{{ db_password }} < db/books_seed.sql
   args:
     chdir: "{{ app_dir }}"
   ignore_errors: yes
-
 
 - name: Create systemd service for EpicBook
   copy:
